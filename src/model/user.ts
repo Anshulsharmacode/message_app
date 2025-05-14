@@ -5,6 +5,7 @@ import mongoose ,{ Document, Schema } from 'mongoose';
 export interface Message extends Document{
     content : string;
     createdAt : Date;
+    _id : string;
 }
 //<> use for custom schema 
 const MessageSchema: Schema<Message> = new Schema({
@@ -58,7 +59,7 @@ const UserSchema: Schema <User> = new Schema({
     },
     isAcceptiveMessage:{
         type: Boolean,
-        default: false,
+        default: true,
     },
     isVerified:{
         type: Boolean,

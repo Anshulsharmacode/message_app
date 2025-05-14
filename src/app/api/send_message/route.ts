@@ -19,7 +19,7 @@ export async function POST(request: Request){
             });
         }
         //validate the user is accepting messages
-
+        //// here give sample value of isAcceptiveMessage
         if(!user.isAcceptiveMessage){
             return Response.json({
                 success: false,

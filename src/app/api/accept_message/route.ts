@@ -18,12 +18,12 @@ export async function POST (request:Request){
             isAcceptingMessages: false,
         });
     }
-    const userId = user.id;
+    const userId = user._id;
     const {acceptMessage}=await request.json();
 
     try {
         const updateUser = await UserModel.findByIdAndUpdate(userId, {
-            isAcceptingMessages: acceptMessage
+            isAcceptiveMessage: acceptMessage
         }, { new: true });
         if (!updateUser) {
             return Response.json({
@@ -65,7 +65,7 @@ export async function GET (request:Request){
             isAcceptingMessages: false,
         });
     }
-    const userId = user.id;
+    const userId = user._id;
     
     try {
         const findUser = await UserModel.findById(userId);
