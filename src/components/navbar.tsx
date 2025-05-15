@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { User } from 'next-auth'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, LogOut, User as UserIcon, Settings, Home, Send, Inbox } from 'lucide-react'
+import { MessageSquare, LogOut, User as UserIcon, Home, Send, Inbox } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 
@@ -21,7 +21,7 @@ const Navbar = () => {
                         href="/" 
                         className="flex items-center space-x-2 mx-4 text-xl font-semibold"
                     >
-                        <MessageCircle className="h-6 w-6 mx-4 text-primary" />
+                        <MessageSquare className="h-6 w-6 mx-4 text-primary" />
                         <span>Mysterious Message</span>
                     </Link>
                 </div>

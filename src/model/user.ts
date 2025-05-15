@@ -1,4 +1,4 @@
-import { create } from 'domain';
+
 import mongoose ,{ Document, Schema } from 'mongoose';
 
 //define data types and use extned to create make document because we are using mongoose

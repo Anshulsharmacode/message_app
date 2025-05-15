@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';

@@ -6,7 +6,6 @@ import mongoose from 'mongoose';
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { messageId: string } }
 ) {
     await dbconnect();
     const session = await getServerSession(authOption);
@@ -20,8 +19,18 @@ export async function DELETE(
     }
 
     try {
+        // Get the message ID from the URL
+        const url = new URL(request.url);
+        const messageId = url.searchParams.get('id');
+
+        if (!messageId) {
+            return Response.json({
+                success: false,
+                message: "Message ID is required"
+            });
+        }
+
         const userId = new mongoose.Types.ObjectId(_user._id);
-        const messageId = params.messageId;
 
         // Find the user and update their messages array by removing the specified message
         const updatedUser = await UserModel.findByIdAndUpdate(
@@ -47,6 +56,8 @@ export async function DELETE(
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         console.error("Error deleting message:", errorMessage);
+        console.log(error)
+        console.log()
         return Response.json({
             success: false,
             message: `Error deleting message: ${errorMessage}`

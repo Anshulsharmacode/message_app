@@ -1,19 +1,16 @@
-import dbconnect from '@/lib/db';
-import UserModel from '@/model/user';
-import { User } from 'next-auth';
-import {authOption} from '@/app/api/auth/[...nextauth]/option';
-import { NextAuthOptions } from 'next-auth';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from "next-auth";
+import { authOption } from "../auth/[...nextauth]/option";
+import UserModel from "@/model/user";
+import dbconnect from "@/lib/db";
 import mongoose from 'mongoose';
 
-
-export async function GET(request: Request) {
+export async function GET() {
     await dbconnect();
     const session = await getServerSession(authOption);
-    const _user = session?.user;
+    const user = session?.user;
 
-    if (!session || !_user) {
-        console.log("No session or user found:", { session, _user });
+    if (!session || !user) {
+        console.log("No session or user found");
         return Response.json({
             success: false,
             message: "User not authenticated",
@@ -22,9 +19,9 @@ export async function GET(request: Request) {
     }
 
     try {
-        // Check for user._id instead of user.id
-        if (!_user._id) {
-            console.error("User ID is missing from session:", _user);
+        const userId = user._id || user.id;
+        if (!userId) {
+            console.error("User ID is missing from session:", user);
             return Response.json({
                 success: false,
                 message: "User ID not found in session",
@@ -32,11 +29,12 @@ export async function GET(request: Request) {
             });
         }
 
-        const userId = new mongoose.Types.ObjectId(_user._id);
-        console.log("Fetching messages for user ID:", userId);
+        // Convert string ID to ObjectId
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        console.log("Fetching messages for user ID:", userObjectId);
 
-        const user = await UserModel.findById(userId);
-        if (!user) {
+        const foundUser = await UserModel.findById(userObjectId);
+        if (!foundUser) {
             return Response.json({
                 success: false,
                 message: "User not found",
@@ -45,7 +43,7 @@ export async function GET(request: Request) {
         }
 
         // Sort messages by date directly
-        const sortedMessages = user.messages.sort((a, b) => 
+        const sortedMessages = foundUser.messages.sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
 

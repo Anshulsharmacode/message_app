@@ -1,13 +1,12 @@
-// import Navbar from "@/components/navbar";
-import MessageCard from "@/components/messageCard";
-import Image from "next/image";
+import React from 'react';
 
-export default function Home() {
+const Home = () => {
   return (
-    <>
-    {/* <MessageCard/> */}
-    
-    
-    </>
+    <div>
+      <h1>Hello World</h1>
+    </div>
   );
-}
+};
+
+export default Home;
+

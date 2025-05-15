@@ -1,5 +1,5 @@
 "use client"
-import { User } from '@/model/user'
+
 import { acceptMessageSchema } from '@/schemas/acceptMessageSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
@@ -21,11 +21,11 @@ import { Separator } from "@/components/ui/separator"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy, Link, Loader2, RefreshCcw, Trash2, MessageCircle } from "lucide-react"
+import { Message } from '@/model/user'
 
 const Page = () => {
     const [messages, setMessages] = React.useState([])
     const [loading, setLoading] = React.useState(true)
-    const [switchLoading, setSwitchLoading] = React.useState(false)
     const [baseUrl, setBaseUrl] = React.useState('')
     const [error, setError] = React.useState<string | null>(null)
 
@@ -38,13 +38,13 @@ const Page = () => {
         }
     })
     
-    const { register, watch, setValue } = form
+    const {  watch, setValue } = form
     const acceptMessage = watch("acceptMessage")
 
     const handleDeleteMessage = async (messageId: string) => {
         try {
             await axios.delete(`/api/delete`);
-            setMessages(messages.filter((message: any) => message._id !== messageId));
+            setMessages(messages.filter((message: Message) => message._id !== messageId));
             toast.success('Message deleted successfully');
         } catch (error) {
             console.error('Error deleting message:', error);
@@ -53,7 +53,6 @@ const Page = () => {
     }
 
     const fetchAcceptiveMessage = useCallback(async () => {
-        setSwitchLoading(true)
         try {
             const response = await axios.get('/api/accept_message')
             setValue('acceptMessage', response.data.isAcceptiveMessage ?? false)
@@ -61,8 +60,6 @@ const Page = () => {
         } catch (error) {
             console.error("Error fetching acceptive message:", error)
             toast.error("Error fetching acceptive message")
-        } finally {
-            setSwitchLoading(false)
         }
     }, [setValue])
 
@@ -172,7 +169,6 @@ const Page = () => {
                             <Switch
                                 checked={acceptMessage}
                                 onCheckedChange={handleSwitchChange}
-                                // disabled={switchLoading}
                             />
                             <label htmlFor="accept-messages" className="text-sm text-muted-foreground">
                                 Accept New Messages
@@ -220,7 +216,7 @@ const Page = () => {
                         </Alert>
                     ) : (
                         <div className="space-y-4">
-                            {messages.map((message: any) => (
+                            {messages.map((message: Message) => (
                                 <Card key={message._id} className="hover:shadow-md transition-shadow">
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                         <div className="flex flex-col gap-1">

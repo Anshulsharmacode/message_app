@@ -1,12 +1,12 @@
 'use client'
-import React, { use, useEffect } from 'react'
+import React, {useEffect } from 'react'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
 // import {zodSchema} from '@/app/(auth)/signup/schema'
 import Link from 'next/link'
 import {useState} from 'react'
-import { useDebounceCallback, useDebounceValue } from 'usehooks-ts' //set value after delay
+import { useDebounceCallback } from 'usehooks-ts' //set value after delay
 import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 import { signUpSchema } from '@/schemas/signUpSchema'
@@ -14,13 +14,12 @@ import axios from 'axios'
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import lucide from 'lucide-react'
 
-const page = () => {
-  const [username ,setUsername] = useState('')
-  const [usernameMessage ,setusernameMessage] = useState('')
-  const [ischeking ,setIsChecking] = useState(false)
-  const [issunbmitted ,setIsSubmitted] = useState(false)
+
+const SignUpPage = () => {
+  const [username, setUsername] = useState('')
+  const [isChecking, setIsChecking] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
 
   const debouncedUsername = useDebounceCallback(setUsername, 300)
 
@@ -39,10 +38,8 @@ const page = () => {
   useEffect(()=>{
     const chechUsername = async()=>{
       setIsChecking(true)
-      setusernameMessage('')
       try {
-        const res = await axios.get(`/api/check_username?username=${username}`)
-        setusernameMessage(res.data.message)
+        // const res = await axios.get(`/api/check_username?username=${username}`)
       } catch (error) {
         console.log(error)
         return Response.json({message: 'Error checking username in axios'}, {status: 500})
@@ -97,7 +94,7 @@ const page = () => {
                    
                   </FormControl>
                   {
-                    ischeking && <span className='text-gray-500'>checking...</span>
+                    isChecking && <span className='text-gray-500'>checking...</span>
                   }
                   <FormDescription>
                     This is your public display name.
@@ -134,7 +131,7 @@ const page = () => {
             />
             <Button type="submit" className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
               {
-                issunbmitted ?(
+                isSubmitted ?(
                   <>
                   <div className="flex items-center gap-2">
                     <span>creating....</span>
@@ -160,4 +157,4 @@ const page = () => {
   )
 }
 
-export default page
+export default SignUpPage

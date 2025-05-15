@@ -1,30 +1,42 @@
 import dbconnect from '@/lib/db';
 import UserModel from '@/model/user';
-import { User } from 'next-auth';
 import {authOption} from '@/app/api/auth/[...nextauth]/option';
-import { NextAuthOptions } from 'next-auth';
 import { getServerSession } from 'next-auth';
+import mongoose from 'mongoose';
 
-export async function POST (request:Request){ 
+export async function POST(request: Request) { 
     await dbconnect();
     const session = await getServerSession(authOption);
-    // const user = session?.user as User
-    const user = session?.user
+    const user = session?.user;
 
-    if(!session || !session?.user){
+    if (!session || !user) {
         return Response.json({
             success: false,
-            message: "User not found",
+            message: "User not authenticated",
             isAcceptingMessages: false,
         });
     }
-    const userId = user._id;
-    const {acceptMessage}=await request.json();
+
+    const userId = session?.user._id || session?.user.id;
+    if (!userId) {
+        console.log(userId , "userId")
+        return Response.json({
+            success: false,
+            message: "User ID not found in session",
+            isAcceptingMessages: false,
+        });
+    }
+
+    const {acceptMessage} = await request.json();
+    const userObjectId = new mongoose.Types.ObjectId(userId);
 
     try {
-        const updateUser = await UserModel.findByIdAndUpdate(userId, {
-            isAcceptiveMessage: acceptMessage
-        }, { new: true });
+        const updateUser = await UserModel.findByIdAndUpdate(
+            userObjectId,
+            { isAcceptiveMessage: acceptMessage },
+            { new: true }
+        );
+
         if (!updateUser) {
             return Response.json({
                 success: false,
@@ -32,6 +44,7 @@ export async function POST (request:Request){
                 isAcceptingMessages: false,
             });
         }
+
         return Response.json({
             success: true,
             message: "User updated successfully",
@@ -45,41 +58,47 @@ export async function POST (request:Request){
             message: "Error updating user",
             isAcceptingMessages: false,
         });
-        
     }
+}
 
-   
- }
-
-
-export async function GET (request:Request){
+export async function GET() {
     await dbconnect();
     const session = await getServerSession(authOption);
-    // const user = session?.user as User
-    const user = session?.user
+    const user = session?.user;
 
-    if(!session || !session?.user){
+    if (!session || !user) {
         return Response.json({
             success: false,
-            message: "User not found",
+            message: "User not authenticated",
             isAcceptingMessages: false,
         });
     }
-    const userId = user._id;
-    
+
+    const userId = session?.user._id || session?.user.id;
+    if (!userId) {
+        return Response.json({
+            success: false,
+            message: "User ID not found in session or user",
+            isAcceptingMessages: false,
+        });
+    }
+
     try {
-        const findUser = await UserModel.findById(userId);
-        if (!findUser) {
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const foundUser = await UserModel.findById(userObjectId);
+        
+        if (!foundUser) {
             return Response.json({
                 success: false,
                 message: "User not found",
                 isAcceptingMessages: false,
             });
         }
+
         return Response.json({
             success: true,
             message: "User found successfully",
-            isAcceptingMessages: findUser.isAcceptiveMessage,
+            isAcceptingMessages: foundUser.isAcceptiveMessage,
         });
         
     } catch (error) {
@@ -89,6 +108,5 @@ export async function GET (request:Request){
             message: "Error finding user",
             isAcceptingMessages: false,
         });
-        
     }
 }
