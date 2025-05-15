@@ -39,7 +39,7 @@ const Page = () => {
     })
     
     const {  watch, setValue } = form
-    const acceptMessage = watch("acceptMessage")
+    // const acceptMessage = watch("acceptMessage")
 
     const handleDeleteMessage = async (messageId: string) => {
         try {
@@ -107,16 +107,16 @@ const Page = () => {
         fetchAcceptiveMessage()
     }, [session, setValue, fetchMessages, fetchAcceptiveMessage])
 
-    const handleSwitchChange = async () => {
-        try {
-            const response = await axios.post('/api/accept_message', { acceptMessage: !acceptMessage })   
-            setValue('acceptMessage', !acceptMessage)
-            toast.success(response.data.message)
-        } catch (error) {
-            console.error("Error updating acceptive message:", error)
-            toast.error("Error updating message preferences")
-        }
-    }
+    // const handleSwitchChange = async () => {
+    //     try {
+    //         const response = await axios.post('/api/accept_message', { acceptMessage: !acceptMessage })   
+    //         setValue('acceptMessage', !acceptMessage)
+    //         toast.success(response.data.message)
+    //     } catch (error) {
+    //         console.error("Error updating acceptive message:", error)
+    //         toast.error("Error updating message preferences")
+    //     }
+    // }
 
     const handleCopyLink = () => {
         if (!baseUrl) {
