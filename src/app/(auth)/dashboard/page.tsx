@@ -38,7 +38,7 @@ const Page = () => {
         }
     })
     
-    const {  watch, setValue } = form
+    const {  setValue } = form
     // const acceptMessage = watch("acceptMessage")
 
     const handleDeleteMessage = async (messageId: string) => {
