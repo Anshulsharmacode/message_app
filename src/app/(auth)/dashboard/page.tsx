@@ -99,7 +99,7 @@ const Page = () => {
         const username = session?.user.username;
         console.log(username, "username");
         if (username) {
-            const baseUrlHost = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' || `https://mysterymessage-pr.vercel.app/`;
+            const baseUrlHost = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' || `https://mysterymessage-pr.vercel.app/` || `https://message-app-pied.vercel.app/`;
             setBaseUrl(`${baseUrlHost}/u/${username}`);
         }
         
