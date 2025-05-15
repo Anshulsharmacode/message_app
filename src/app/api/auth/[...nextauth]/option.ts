@@ -7,8 +7,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 
 // interface Credentials {
-    //     identifier: string;
-    //     password: string;
+//    s
 //   }
 
 
@@ -86,17 +85,33 @@ export const authOption:NextAuthOptions={
     ],
     callbacks:{
         async jwt({token, user}){
-            if(user){
-                token.sub = user._id || user.id;
+            if (user) {
+                return {
+                    ...token,
+                    // _id: user._id || user.id,
+                    _id: user._id || user.id,
+                    username: user.username,
+                    isVerified: user.isVerified,
+                    isAcceptiveMessage: user.isAcceptiveMessage,
+                    email: user.email
+                }
             }
             return token;
         },
         async session({session, token}){
-            if(session.user){
-                session.user._id = token.sub;
-                session.user.id = token.sub;
+            return {
+                ...session,
+                user: {
+                    ...session.user,
+                    // _id: token._id,
+                    username: token.username,
+                    isVerified: token.isVerified,
+                    isAcceptiveMessage: token.isAcceptiveMessage,
+                    email: token.email,
+                    _id: token.sub,
+                    id: token.sub
+                }
             }
-            return session;
         }
     },
     pages:{

@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy, Link, Loader2, RefreshCcw, Trash2, MessageCircle } from "lucide-react"
-import { Message } from '@/model/user'
+import user, { Message } from '@/model/user'
 
 const Page = () => {
     const [messages, setMessages] = React.useState([])
@@ -96,9 +96,11 @@ const Page = () => {
             return
         }
         
-        const username = session.user.username
+        const username = session?.user.username;
+        console.log(username, "username");
         if (username) {
-            setBaseUrl(`http://localhost:3000/u/${username}`||`https://mysterymessage-pr.vercel.app/u/${username}`)
+            const baseUrlHost = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+            setBaseUrl(`${baseUrlHost}/u/${username}`);
         }
         
         fetchMessages()
