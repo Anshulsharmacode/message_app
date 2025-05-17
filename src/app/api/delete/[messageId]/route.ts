@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 
 export async function DELETE(
     request: Request,
+    context: { params: { messageId: string } }
 ) {
     await dbconnect();
     const session = await getServerSession(authOption);
@@ -19,9 +20,7 @@ export async function DELETE(
     }
 
     try {
-        // Get the message ID from the URL
-        const url = new URL(request.url);
-        const messageId = url.searchParams.get('id');
+        const { messageId } = context.params;
 
         if (!messageId) {
             return Response.json({
@@ -30,13 +29,12 @@ export async function DELETE(
             });
         }
 
-        const userId = new mongoose.Types.ObjectId(_user._id);
+        const userId = new mongoose.Types.ObjectId(_user.id);
 
-        // Find the user and update their messages array by removing the specified message
         const updatedUser = await UserModel.findByIdAndUpdate(
             userId,
             {
-                $pull: { messages: { _id: messageId } }
+                $pull: { messages: { _id: new mongoose.Types.ObjectId(messageId) } }
             },
             { new: true }
         );
@@ -54,13 +52,10 @@ export async function DELETE(
         });
 
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Error deleting message:", errorMessage);
-        console.log(error)
-        console.log()
+        console.error("Error deleting message:", error);
         return Response.json({
             success: false,
-            message: `Error deleting message: ${errorMessage}`
+            message: "Error deleting message"
         });
     }
 }

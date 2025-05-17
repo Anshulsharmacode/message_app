@@ -2,8 +2,7 @@ import React from 'react'
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
+  CardFooter,
 } from "@/components/ui/card"
 import {
   AlertDialog,
@@ -16,48 +15,45 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button } from './ui/button'
+import { Button } from "@/components/ui/button"
 import { Message } from '@/model/user'
-import { toast } from 'sonner'
-import axios from 'axios'
-import { Trash2, Clock } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { Trash2 } from 'lucide-react'
 
-type MessageCardProps = {
+
+interface MessageCardProps {
   message: Message;
-  onMessageDelete: (messageId: string) => void;
+  onMessageDelete: (messageId: string) => Promise<void>;
 }
 
 const MessageCard = ({ message, onMessageDelete }: MessageCardProps) => {
-  const handleDeleteConfirm = async () => {
-    try {
-      await axios.delete(`/api/message/${message.id}`)
-      toast.success("Message deleted successfully")
-      onMessageDelete(message.id)
-    } catch (error) {
-      console.log(error)
-      toast.error("Failed to delete message")
+  const handleDelete = async () => {
+    if (!message._id) {
+      console.error('Message ID is missing');
+      return;
     }
-  }
+    
+    try {
+      await onMessageDelete(message._id.toString());
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
 
   return (
     <Card className="w-full max-w-2xl hover:shadow-lg transition-shadow duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div>
-          {/* <CardTitle className="text-xl font-bold">{}</CardTitle> */}
-          <CardDescription className="flex items-center text-sm text-gray-500">
-            <Clock className="mr-1 h-4 w-4" />
-            {message?.createdAt && formatDistanceToNow(new Date(message?.createdAt), { addSuffix: true })}
-          </CardDescription>
-        </div>
+      <CardContent className="pt-6">
+        <p className="text-gray-700 whitespace-pre-wrap">{message?.content}</p>
+      </CardContent>
+      <CardFooter className="justify-end">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button 
-              variant="ghost" 
-              size="icon"
+              variant="destructive" 
+              size="sm"
               className="text-gray-500 hover:text-red-500"
             >
-              <Trash2 className="h-5 w-5" />
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -70,7 +66,7 @@ const MessageCard = ({ message, onMessageDelete }: MessageCardProps) => {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleDeleteConfirm}
+                onClick={handleDelete}
                 className="bg-red-500 hover:bg-red-600"
               >
                 Delete
@@ -78,15 +74,7 @@ const MessageCard = ({ message, onMessageDelete }: MessageCardProps) => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-700 whitespace-pre-wrap">{message?.content}</p>
-      </CardContent>
-      {/* <CardFooter className="text-sm text-gray-500">
-        {message.author && (
-          <p>By: {message.author}</p>
-        )}
-      </CardFooter> */}
+      </CardFooter>
     </Card>
   )
 }

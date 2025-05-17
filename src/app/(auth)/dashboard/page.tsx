@@ -2,34 +2,30 @@
 
 import { acceptMessageSchema } from '@/schemas/acceptMessageSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useSession } from 'next-auth/react'
 import React, { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-// import { Switch } from "@/components/ui/switch"
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Copy, Link, Loader2, RefreshCcw, Trash2, MessageCircle } from "lucide-react"
-import  { Message } from '@/model/user'
+import { Copy, Link, Loader2, RefreshCcw, MessageCircle } from "lucide-react"
+import { Message } from '@/model/user'
+import { Switch } from '@/components/ui/switch'
+import MessageCard  from '@/components/messageCard'
 
 const Page = () => {
-    const [messages, setMessages] = React.useState([])
+    const [messages, setMessages] = React.useState<Message[]>([])
     const [loading, setLoading] = React.useState(true)
-    const [baseUrl, setBaseUrl] = React.useState('')
+    const [isSwitchLoading, setIsSwitchLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
 
     const { data: session } = useSession()
+    
+    // Add this check to safely access username
+    const username = session?.user?.name || ''
 
     const form = useForm({
         resolver: zodResolver(acceptMessageSchema),
@@ -38,96 +34,118 @@ const Page = () => {
         }
     })
     
-    const {  setValue } = form
-    // const acceptMessage = watch("acceptMessage")
+    const { setValue, watch } = form
+    const acceptMessage = watch("acceptMessage")
 
     const handleDeleteMessage = async (messageId: string) => {
+        if (!messageId) {
+            toast.error('Invalid message ID');
+            return;
+        }
+    
         try {
-            await axios.delete(`/api/delete`);
-            setMessages(messages.filter((message: Message) => message._id !== messageId));
-            toast.success('Message deleted successfully');
-        } catch (error) {
+            const response = await axios.delete(`/api/delete/${messageId}`);
+            
+            if (response.data.success) {
+                setMessages(prevMessages => 
+                    prevMessages.filter((message) => message._id.toString() !== messageId.toString())
+                );
+                toast.success('Message deleted successfully');
+            } else {
+                toast.error(response.data.message || 'Failed to delete message');
+            }
+        } catch (error: any) {
             console.error('Error deleting message:', error);
-            toast.error('Failed to delete message');
+            const errorMessage = error.response?.data?.message || 'Failed to delete message';
+            toast.error(errorMessage);
         }
     }
 
     const fetchAcceptiveMessage = useCallback(async () => {
+        setIsSwitchLoading(true)
         try {
             const response = await axios.get('/api/accept_message')
             setValue('acceptMessage', response.data.isAcceptiveMessage ?? false)
-            toast.success(response.data.message)
         } catch (error) {
-            console.error("Error fetching acceptive message:", error)
-            toast.error("Error fetching acceptive message")
+            // const axiosError = error as AxiosError
+            console.log(error , "error")
+            toast.error("Error fetching message preferences")
+        } finally {
+            setIsSwitchLoading(false)
         }
     }, [setValue])
 
     const fetchMessages = useCallback(async (refresh: boolean = false) => {
-        setLoading(true);
-        setError(null);
+        setLoading(true)
+        setError(null)
         try {
-            const response = await axios.get('/api/get_message');
+            const response = await axios.get('/api/get_message')
             if (response.data.success) {
-                setMessages(response.data.messages);
+                setMessages(response.data.messages)
                 if (refresh) {
-                    toast.success('Messages refreshed successfully');
+                    toast.success('Messages refreshed successfully')
                 }
-            } else {
-                const errorMsg = response.data.message || 'Failed to fetch messages';
-                console.error("API Error:", errorMsg);
-                setError(errorMsg);
-                toast.error(errorMsg);
-                setMessages([]);
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
-            console.error("Error fetching messages:", errorMessage);
-            setError(errorMessage);
-            toast.error(`Error fetching messages: ${errorMessage}`);
-            setMessages([]);
+            
+            // const errorMessage = axiosError.response?.data?.message ?? "Failed to fetch messages"
+            // setError(errorMessage)
+
+            console.log(error)
+            toast.error("failed to fetch ")
+            setMessages([])
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, []);
+    }, [])
 
     useEffect(() => {
-        if (!session?.user) {
-            return
-        }
+        if (!session?.user) return
         
-        const username = session?.user.username;
-        console.log(username, "username");
-        if (username) {
-            const baseUrlHost = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' || `https://mysterymessage-pr.vercel.app/` || `https://message-app-pied.vercel.app/`;
-            setBaseUrl(`${baseUrlHost}/u/${username}`);
-        }
-        
-        fetchMessages()
-        fetchAcceptiveMessage()
-    }, [session, setValue, fetchMessages, fetchAcceptiveMessage])
+        Promise.all([
+            fetchMessages(),
+            fetchAcceptiveMessage()
+        ]).catch(error => {
+            console.error("Error initializing dashboard:", error)
+            toast.error("Error loading dashboard data")
+        })
+    }, [session, fetchMessages, fetchAcceptiveMessage])
 
-    // const handleSwitchChange = async () => {
-    //     try {
-    //         const response = await axios.post('/api/accept_message', { acceptMessage: !acceptMessage })   
-    //         setValue('acceptMessage', !acceptMessage)
-    //         toast.success(response.data.message)
-    //     } catch (error) {
-    //         console.error("Error updating acceptive message:", error)
-    //         toast.error("Error updating message preferences")
-    //     }
-    // }
+    const handleSwitchChange = async () => {
+        const previousState = acceptMessage;
+        try {
+            setIsSwitchLoading(true);
+            
+            const response = await axios.post('/api/accept_message', { 
+                acceptMessage: !previousState 
+            });
+            
+            if (response.data.success) {
+                setValue('acceptMessage', !previousState);
+                toast.success(response.data.message);
+            } else {
+                toast.error(response.data.message || "Failed to update preferences");
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to update preferences");
+            console.error("Error:", error);
+        } finally {
+            setIsSwitchLoading(false);
+        }
+    }
+
+    // Update the baseUrl declaration
+    const baseUrl = `http://localhost:3000/u/${username}`
 
     const handleCopyLink = () => {
-        if (!baseUrl) {
-            toast.error("Profile link not available")
+        if (!username) {
+            toast.error("Username not available")
             return
         }
         navigator.clipboard.writeText(baseUrl)
-        toast.success("Link copied to clipboard")
+        toast.success("Profile URL copied to clipboard")
     }
 
-    // Protect against session being undefined
     if (!session?.user) {
         return (
             <div className="container mx-auto p-6">
@@ -146,106 +164,82 @@ const Page = () => {
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-muted-foreground">Manage your messages and settings</p>
+        <div className="my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
+            <h1 className="text-4xl font-bold mb-4">User Dashboard</h1>
+
+            <div className="mb-4">
+                <h2 className="text-lg font-semibold mb-2">Your Profile Link</h2>
+                <div className="flex items-center gap-2">
+                    <input
+                        type="text"
+                        value={baseUrl}
+                        disabled
+                        className="input input-bordered w-full p-2"
+                    />
+                    <Button onClick={handleCopyLink} variant="outline">
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                    </Button>
                 </div>
-                <Button onClick={handleCopyLink} variant="outline" className="gap-2">
-                    <Copy className="h-4 w-4" />
-                    Copy Profile Link
+            </div>
+
+            <div className="mb-4 flex items-center gap-2">
+                <Switch
+                    checked={acceptMessage}
+                    onCheckedChange={handleSwitchChange}
+                    disabled={isSwitchLoading}
+                />
+                <span className="text-sm">
+                    Accept Messages: {acceptMessage ? 'On' : 'Off'}
+                </span>
+            </div>
+
+            <Separator className="my-4" />
+
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Messages</h2>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => fetchMessages(true)}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <RefreshCcw className="h-4 w-4" />
+                    )}
                 </Button>
             </div>
 
-            <Separator />
-
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div>
-                        <CardTitle>Messages</CardTitle>
-                        <CardDescription>View and manage your received messages</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        {/* <div className="flex items-center space-x-2">
-                            <Switch
-                                checked={acceptMessage}
-                                onCheckedChange={handleSwitchChange}
-                            />
-                            <label htmlFor="accept-messages" className="text-sm text-muted-foreground">
-                                Accept New Messages
-                            </label>
-                        </div> */}
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => fetchMessages(true)}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <RefreshCcw className="h-4 w-4" />
-                            )}
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {error ? (
+                    <Alert variant="destructive">
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                ) : messages.length === 0 ? (
                     <Alert>
-                        <Link className="h-4 w-4" />
-                        <AlertTitle>Your Profile Link</AlertTitle>
-                        <AlertDescription className="font-mono text-sm">
-                            {baseUrl || 'Loading...'}
+                        <MessageCircle className="h-4 w-4" />
+                        <AlertTitle>
+                            {loading ? 'Loading Messages...' : 'No Messages'}
+                        </AlertTitle>
+                        <AlertDescription>
+                            {loading 
+                                ? 'Please wait while we fetch your messages...'
+                                : 'Share your profile link to start receiving messages.'}
                         </AlertDescription>
                     </Alert>
-
-                    {error ? (
-                        <Alert variant="destructive">
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    ) : messages.length === 0 ? (
-                        <Alert>
-                            <MessageCircle className="h-4 w-4" />
-                            <AlertTitle>
-                                {loading ? 'Loading Messages...' : 'No Messages'}
-                            </AlertTitle>
-                            <AlertDescription>
-                                {loading 
-                                    ? 'Please wait while we fetch your messages...'
-                                    : 'Share your profile link to start receiving messages.'}
-                            </AlertDescription>
-                        </Alert>
-                    ) : (
-                        <div className="space-y-4">
-                            {messages.map((message: Message) => (
-                                <Card key={message._id} className="hover:shadow-md transition-shadow">
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <div className="flex flex-col gap-1">
-                                            <CardDescription className="text-sm text-muted-foreground">
-                                                Received: {new Date(message.createdAt).toLocaleString()}
-                                            </CardDescription>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleDeleteMessage(message._id)}
-                                            title="Delete message"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-gray-700 whitespace-pre-wrap break-words">
-                                            {message.content}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                ) : (
+                    messages.map((message) => (
+                        <MessageCard
+                            key={message._id}
+                            message={message}
+                            onMessageDelete={handleDeleteMessage}
+                        />
+                    ))
+                )}
+            </div>
         </div>
     )
 }
