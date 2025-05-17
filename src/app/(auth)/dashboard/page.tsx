@@ -2,16 +2,16 @@
 
 import { acceptMessageSchema } from '@/schemas/acceptMessageSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import React, { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Copy, Link, Loader2, RefreshCcw, MessageCircle } from "lucide-react"
+import { Copy, Loader2, RefreshCcw, MessageCircle } from "lucide-react"
 import { Message } from '@/model/user'
 import { Switch } from '@/components/ui/switch'
 import MessageCard  from '@/components/messageCard'
@@ -54,10 +54,10 @@ const Page = () => {
             } else {
                 toast.error(response.data.message || 'Failed to delete message');
             }
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error deleting message:', error);
-            const errorMessage = error.response?.data?.message || 'Failed to delete message';
-            toast.error(errorMessage);
+            
+            toast.error("error in handle delete");
         }
     }
 
@@ -126,8 +126,8 @@ const Page = () => {
             } else {
                 toast.error(response.data.message || "Failed to update preferences");
             }
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to update preferences");
+        } catch (error) {
+            toast.error("Failed to update preferences");
             console.error("Error:", error);
         } finally {
             setIsSwitchLoading(false);
@@ -135,7 +135,7 @@ const Page = () => {
     }
 
     // Update the baseUrl declaration
-    const baseUrl = `http://localhost:3000/u/${username}`
+    const baseUrl = `http://localhost:3000/u/${username}`||`https://message-app-pied.vercel.app/u/${username}`
 
     const handleCopyLink = () => {
         if (!username) {

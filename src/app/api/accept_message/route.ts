@@ -1,8 +1,8 @@
 import dbconnect from '@/lib/db';
-import UserModel, { User } from '@/model/user';
+import UserModel from '@/model/user';
 import {authOption} from '@/app/api/auth/[...nextauth]/option';
 import { getServerSession } from 'next-auth';
-import mongoose from 'mongoose';
+
 
 
 export async function POST(request: Request) {
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   await dbconnect();
   const session = await getServerSession(authOption);
   const user = session?.user;
