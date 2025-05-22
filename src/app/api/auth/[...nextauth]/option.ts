@@ -4,6 +4,7 @@ import dbconnect from "@/lib/db";
 import { NextAuthOptions } from "next-auth";
   
 import CredentialsProvider from "next-auth/providers/credentials";
+// import user from "@/model/user";
 
 
 // interface Credentials {
@@ -82,7 +83,7 @@ export const authOption:NextAuthOptions={
                     }
 
                     const userToReturn = {
-                        id: user._id.toString(),
+                        id: user.id.toString(),
                         email: user.email,
                         username: user.username,
                         isVerified: user.isVerified,
@@ -96,10 +97,7 @@ export const authOption:NextAuthOptions={
                     return userToReturn;
 
                 } catch (error) {
-                    console.error("Auth error:", {
-                        message: error.message,
-                        stack: error.stack
-                    });
+                    console.error("Error during authentication:", error);
                     throw error;
                 }
             }
@@ -130,7 +128,7 @@ export const authOption:NextAuthOptions={
         },
         async session({session, token}){
             console.log("Session Callback - Input:", {
-                sessionId: session?.id,
+                sessionId: token?._id,
                 tokenSub: token?.sub
             });
             
@@ -142,8 +140,8 @@ export const authOption:NextAuthOptions={
                     isVerified: token.isVerified,
                     isAcceptiveMessage: token.isAcceptiveMessage,
                     email: token.email,
-                    _id: token.sub,
-                    id: token.sub
+                    _id: token._id || token.sub, // Added fallback to token.sub
+                    id: token._id || token.sub // Added fallback to token.sub
                 }
             };
             console.log("Session Callback - New session created:", newSession);
