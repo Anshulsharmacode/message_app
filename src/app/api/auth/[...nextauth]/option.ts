@@ -22,7 +22,7 @@ export const authOption:NextAuthOptions={
             credentials:{
                 email:{
                     label: "Email or Username",
-                    type: "text", 
+                    type: "email", 
                     placeholder: "jsmith"
                 },
                 password:{
@@ -31,53 +31,76 @@ export const authOption:NextAuthOptions={
                     placeholder: "********"
                 }
             },
+            // Remove the stray 'c' character that was here
             async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) return null;
+                console.log("Auth attempt with:", { 
+                    email: credentials?.email,
+                    hasPassword: !!credentials?.password 
+                });
+
+                console.log("Credentials:", credentials);
+
+                if (!credentials?.email || !credentials?.password) {
+                    console.log("Missing credentials");
+                    throw new Error("Missing credentials");
+                }
                 
                 await dbconnect();
                 try {
-                    const user = await UserModel.findOne({
-                        $or:[
-                            {email: credentials.email},
-                            {username: credentials.email}
-                        ]
-                    }).select('+password')
+                    console.log("Looking for user with email/username:", credentials.email);
                     
+                    const user = await UserModel.findOne({
+                        $or: [
+                            { email: credentials.email },
+                            { username: credentials.email }
+                        ]
+                    }).select('+password');
+                    
+                    console.log("User found:", !!user);
+
                     if (!user) {
-                        throw new Error("User not found");
-                    }
-                    if(!user.isVerified){
-                        throw new Error("User is not verified");
+                        console.log("No user found with provided credentials");
+                        throw new Error("Invalid email or password");
                     }
 
-                    // if (user) {
-                    //     // Ensure both id and _id are set
-                    //     token.id = user.id || user._id;
-                    //     token._id = user._id || user.id;
-                    //     token.isVerified = user.isVerified;
-                    //     token.isAcceptiveMessage = user.isAcceptiveMessage;
-                    //     token.username = user.username;
-                    //     token.email = user.email;
-                    // }
-
-                    const passwordCorrect = await bcrypt.compare(credentials.password, user.password)
-
-                    if(passwordCorrect) {
-                        return {
-                            id: user.id.toString(),
-                            _id: user.id.toString(),
-                            email: user.email,
-                            username: user.username,
-                            isVerified: user.isVerified,
-                            isAcceptiveMessage: user.isAcceptiveMessage
-                        }
-                    } else {
-                        throw new Error("Invalid password");
+                    console.log("Verification status:", user.isVerified);
+                    if (!user.isVerified) {
+                        console.log("User not verified");
+                        throw new Error("Please verify your email first");
                     }
+
+                    console.log("Comparing passwords...");
+                    const passwordCorrect = await bcrypt.compare(
+                        credentials.password, 
+                        user.password
+                    );
+                    
+                    console.log("Password correct:", passwordCorrect);
+                    if (!passwordCorrect) {
+                        console.log("Password comparison failed");
+                        throw new Error("Invalid email or password");
+                    }
+
+                    const userToReturn = {
+                        id: user._id.toString(),
+                        email: user.email,
+                        username: user.username,
+                        isVerified: user.isVerified,
+                        isAcceptiveMessage: user.isAcceptiveMessage
+                    };
+                    console.log("Authentication successful, returning user:", {
+                        ...userToReturn,
+                        password: undefined
+                    });
+
+                    return userToReturn;
 
                 } catch (error) {
-                    console.log(error)
-                    throw new Error("Error authorizing user");
+                    console.error("Auth error:", {
+                        message: error.message,
+                        stack: error.stack
+                    });
+                    throw error;
                 }
             }
         })
@@ -85,25 +108,36 @@ export const authOption:NextAuthOptions={
     ],
     callbacks:{
         async jwt({token, user}){
+            console.log("JWT Callback - Input:", { 
+                tokenSub: token?.sub,
+                userId: user?.id 
+            });
+            
             if (user) {
-                return {
+                const newToken = {
                     ...token,
-                    // _id: user._id || user.id,
-                    _id: user._id || user.id,
+                    _id: user.id,
                     username: user.username,
                     isVerified: user.isVerified,
                     isAcceptiveMessage: user.isAcceptiveMessage,
                     email: user.email
-                }
+                };
+                console.log("JWT Callback - New token created:", newToken);
+                return newToken;
             }
+            console.log("JWT Callback - Returning existing token");
             return token;
         },
         async session({session, token}){
-            return {
+            console.log("Session Callback - Input:", {
+                sessionId: session?.id,
+                tokenSub: token?.sub
+            });
+            
+            const newSession = {
                 ...session,
                 user: {
                     ...session.user,
-                    // _id: token._id,
                     username: token.username,
                     isVerified: token.isVerified,
                     isAcceptiveMessage: token.isAcceptiveMessage,
@@ -111,7 +145,9 @@ export const authOption:NextAuthOptions={
                     _id: token.sub,
                     id: token.sub
                 }
-            }
+            };
+            console.log("Session Callback - New session created:", newSession);
+            return newSession;
         }
     },
     pages:{

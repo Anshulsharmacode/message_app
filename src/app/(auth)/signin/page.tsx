@@ -28,7 +28,7 @@ const SignInPage = () => {
     const onSubmit = async (values: SignInFormValues) => { 
         try {
             const response = await signIn('credentials', {
-                identifier: values.email,  // Changed from email to identifier
+                email: values.email,  // Changed from email to identifier
                 password: values.password,
                 callbackUrl: '/dashboard',     // Added callback URL
                 redirect: false
