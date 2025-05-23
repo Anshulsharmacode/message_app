@@ -26,6 +26,8 @@ interface MessageCardProps {
 }
 
 const MessageCard = ({ message, onMessageDelete }: MessageCardProps) => {
+  console.log('Rendering message:', message)
+  
   const handleDelete = async () => {
     if (!message._id) {
       console.error('Message ID is missing');
@@ -42,7 +44,7 @@ const MessageCard = ({ message, onMessageDelete }: MessageCardProps) => {
   return (
     <Card className="w-full max-w-2xl hover:shadow-lg transition-shadow duration-300">
       <CardContent className="pt-6">
-        <p className="text-gray-700 whitespace-pre-wrap">{message?.content}</p>
+        <p className="text-gray-700 whitespace-pre-wrap">{message?.content || 'No content'}</p>
       </CardContent>
       <CardFooter className="justify-end">
         <AlertDialog>

@@ -15,9 +15,9 @@ export async function DELETE(req: NextRequest) {
   const messageId = pathParts[pathParts.length - 1];
   
   const session = await getServerSession(authOption);
-  const _user = session?.user;
+  const user = session?.user;
 
-  if (!session || !_user) {
+  if (!session || !user) {
     return NextResponse.json(
       { success: false, message: "User not authenticated" },
       { status: 401 }
@@ -32,10 +32,16 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const userId = new mongoose.Types.ObjectId(_user.id);
+    // Check if the messageId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid message ID format" },
+        { status: 400 }
+      );
+    }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      userId,
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { email: user.email },
       {
         $pull: { messages: { _id: new mongoose.Types.ObjectId(messageId) } },
       },

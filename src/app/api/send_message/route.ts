@@ -10,11 +10,9 @@ export async function POST(request: Request){
     const {username, content } = await request.json();
 
     try {
-        // Use findOneAndUpdate instead of findOne + save to avoid version conflicts
-        const user = await UserModel.findOneAndUpdate(
-            { username: { $regex: new RegExp(`^${username}$`, 'i') } },
-            { $push: { messages: { content, createdAt: new Date() } } },
-            { new: true }
+        // First find the user without updating
+        const user = await UserModel.findOne(
+            { username: { $regex: new RegExp(`^${username}$`, 'i') } }
         );
         
         if(!user){
@@ -24,11 +22,26 @@ export async function POST(request: Request){
             });
         }
         
-        //validate the user is accepting messages
+        // Check if the user is accepting messages before adding the message
         if(!user.isAcceptiveMessage){
             return Response.json({
                 success: false,
                 message: "User is not accepting messages",
+            });
+        }
+
+        // Use findOneAndUpdate instead of manually pushing and saving
+        // This avoids the version error by doing the update atomically
+        const updatedUser = await UserModel.findOneAndUpdate(
+            { email: user.email },  // Use email as the identifier instead of _id
+            { $push: { messages: { content, createdAt: new Date() } } },
+            { new: true }  // Return the updated document
+        );
+
+        if (!updatedUser) {
+            return Response.json({
+                success: false,
+                message: "Failed to update user",
             });
         }
 

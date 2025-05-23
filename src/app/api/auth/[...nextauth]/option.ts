@@ -48,7 +48,7 @@ export const authOption:NextAuthOptions={
                 
                 await dbconnect();
                 try {
-                    console.log("Looking for user with email/username:", credentials.email);
+                    // console.log("Looking for user with email/username:", credentials.email);
                     
                     const user = await UserModel.findOne({
                         $or: [
@@ -57,26 +57,26 @@ export const authOption:NextAuthOptions={
                         ]
                     }).select('+password');
                     
-                    console.log("User found:", !!user);
+                    // console.log("User found:", !!user); //
 
                     if (!user) {
                         console.log("No user found with provided credentials");
                         throw new Error("Invalid email or password");
                     }
 
-                    console.log("Verification status:", user.isVerified);
+                    // console.log("Verification status:", user.isVerified);
                     if (!user.isVerified) {
                         console.log("User not verified");
                         throw new Error("Please verify your email first");
                     }
 
-                    console.log("Comparing passwords...");
+                    // console.log("Comparing passwords...");
                     const passwordCorrect = await bcrypt.compare(
                         credentials.password, 
                         user.password
                     );
                     
-                    console.log("Password correct:", passwordCorrect);
+                    // console.log("Password correct:", passwordCorrect);
                     if (!passwordCorrect) {
                         console.log("Password comparison failed");
                         throw new Error("Invalid email or password");
@@ -89,10 +89,10 @@ export const authOption:NextAuthOptions={
                         isVerified: user.isVerified,
                         isAcceptiveMessage: user.isAcceptiveMessage
                     };
-                    console.log("Authentication successful, returning user:", {
-                        ...userToReturn,
-                        password: undefined
-                    });
+                    //  console.log("Authentication successful, returning user:", {
+                    //     ...userToReturn,
+                    //     password: undefined
+                    // });
 
                     return userToReturn;
 
@@ -106,10 +106,10 @@ export const authOption:NextAuthOptions={
     ],
     callbacks:{
         async jwt({token, user}){
-            console.log("JWT Callback - Input:", { 
-                tokenSub: token?.sub,
-                userId: user?.id 
-            });
+            // console.log("JWT Callback - Input:", { 
+            //     tokenSub: token?.sub,
+            //     userId: user?.id 
+            // });
             
             if (user) {
                 const newToken = {
@@ -120,17 +120,17 @@ export const authOption:NextAuthOptions={
                     isAcceptiveMessage: user.isAcceptiveMessage,
                     email: user.email
                 };
-                console.log("JWT Callback - New token created:", newToken);
+                //  console.log("JWT Callback - New token created:", newToken);
                 return newToken;
             }
-            console.log("JWT Callback - Returning existing token");
+            // console.log("JWT Callback - Returning existing token");
             return token;
         },
         async session({session, token}){
-            console.log("Session Callback - Input:", {
-                sessionId: token?._id,
-                tokenSub: token?.sub
-            });
+            //          console.log("Session Callback - Input:", {
+            //     sessionId: token?._id,
+            //     tokenSub: token?.sub
+            // });
             
             const newSession = {
                 ...session,
@@ -144,7 +144,7 @@ export const authOption:NextAuthOptions={
                     id: token._id || token.sub // Added fallback to token.sub
                 }
             };
-            console.log("Session Callback - New session created:", newSession);
+            // console.log("Session Callback - New session created:", newSession);
             return newSession;
         }
     },

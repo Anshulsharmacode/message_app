@@ -80,19 +80,20 @@ const Page = () => {
         setError(null)
         try {
             const response = await axios.get('/api/get_message')
+            console.log('API Response:', response.data)
             if (response.data.success) {
-                setMessages(response.data.messages)
+                console.log('Messages received:', response.data.messages)
+                setMessages(response.data.messages || [])
                 if (refresh) {
                     toast.success('Messages refreshed successfully')
                 }
+            } else {
+                console.log('API returned success: false', response.data.message)
+                setError(response.data.message || 'Failed to fetch messages')
             }
         } catch (error) {
-            
-            // const errorMessage = axiosError.response?.data?.message ?? "Failed to fetch messages"
-            // setError(errorMessage)
-
-            console.log(error)
-            toast.error("failed to fetch ")
+            console.error('Error fetching messages:', error)
+            toast.error("Failed to fetch messages")
             setMessages([])
         } finally {
             setLoading(false)
