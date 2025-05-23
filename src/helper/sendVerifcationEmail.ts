@@ -16,7 +16,7 @@ export async function sendVerificationEmail(
     email: string,
     username: string,
     verifycode: string
-): Promise<ApiResponse> {
+){
     try {
         const emailHtml = await render(
             React.createElement(VerificationEmail, { username, otp: verifycode })
@@ -26,7 +26,7 @@ export async function sendVerificationEmail(
             from: '"Acme" <no-reply@acme.com>',
             to: email,
             subject: "Verification Email",
-            html: emailHtml, // ✅ Now a string
+            html: emailHtml, 
         });
 
         return {

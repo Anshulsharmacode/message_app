@@ -30,12 +30,10 @@ export async function POST(request: Request){
             });
         }
 
-        // Use findOneAndUpdate instead of manually pushing and saving
-        // This avoids the version error by doing the update atomically
         const updatedUser = await UserModel.findOneAndUpdate(
-            { email: user.email },  // Use email as the identifier instead of _id
+            { email: user.email },  
             { $push: { messages: { content, createdAt: new Date() } } },
-            { new: true }  // Return the updated document
+            { new: true } 
         );
 
         if (!updatedUser) {

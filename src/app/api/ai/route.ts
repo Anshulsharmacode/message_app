@@ -13,7 +13,8 @@ export async function POST() {
             contents,
         });
 
-        console.log(ab.text);
+        // console.log("response",ab);
+        // console.log("ab", ab.text);
         return NextResponse.json({ result: ab.text });
     } catch {
         return NextResponse.json({ error: "Failed to generate suggestions" }, { status: 500 });

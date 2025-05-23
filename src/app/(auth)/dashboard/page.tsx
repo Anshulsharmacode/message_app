@@ -120,10 +120,13 @@ const Page = () => {
             const response = await axios.post('/api/accept_message', { 
                 acceptMessage: !previousState 
             });
+            console.log('Switch response:', response.data);
+            console.log("response",response)
             
             if (response.data.success) {
                 setValue('acceptMessage', !previousState);
                 toast.success(response.data.message);
+
             } else {
                 toast.error(response.data.message || "Failed to update preferences");
             }

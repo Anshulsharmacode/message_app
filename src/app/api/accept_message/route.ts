@@ -2,17 +2,20 @@ import dbconnect from '@/lib/db';
 import UserModel from '@/model/user';
 import {authOption} from '@/app/api/auth/[...nextauth]/option';
 import { getServerSession } from 'next-auth';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 
 
 
+//for updating the message preferences
 export async function POST(request: Request) {
   await dbconnect();
 
   const session = await getServerSession(authOption);
   const user = session?.user;
+
   // console.log(user , "user")
   // console.log("user._id",user._id)
+
   if (!session || !user) {
     return Response.json(
       { success: false, message: 'Not authenticated' },
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
   const { acceptMessage } = await request.json();
 
   try {
-    // Use email instead of ID for finding and updating the user
+   
     const userEmail = user.email;
     
     const updatedUser = await UserModel.findOneAndUpdate(
@@ -48,10 +51,9 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('Error updating message preferences:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error details:', { errorMessage });
+    
     return Response.json(
-      { success: false, message: 'Failed to update preferences', error: errorMessage },
+      { success: false, message: 'Failed to update preferences', error },
       { status: 500 }
     );
   }
@@ -70,7 +72,7 @@ export async function GET() {
   }
 
   try {
-    // Use email instead of ID for finding the user
+    
     const userEmail = user.email;
     console.log('Fetching message preferences for user email:', userEmail);
     

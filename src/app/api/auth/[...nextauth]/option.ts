@@ -4,13 +4,6 @@ import dbconnect from "@/lib/db";
 import { NextAuthOptions } from "next-auth";
   
 import CredentialsProvider from "next-auth/providers/credentials";
-// import user from "@/model/user";
-
-
-// interface Credentials {
-//    s
-//   }
-
 
 
 export const authOption:NextAuthOptions={
@@ -32,14 +25,14 @@ export const authOption:NextAuthOptions={
                     placeholder: "********"
                 }
             },
-            // Remove the stray 'c' character that was here
+            
             async authorize(credentials) {
-                console.log("Auth attempt with:", { 
-                    email: credentials?.email,
-                    hasPassword: !!credentials?.password 
-                });
+                // console.log("Auth attempt with:", { 
+                //     email: credentials?.email,
+                //     hasPassword: !!credentials?.password 
+                // });
 
-                console.log("Credentials:", credentials);
+                // console.log("Credentials:", credentials);
 
                 if (!credentials?.email || !credentials?.password) {
                     console.log("Missing credentials");
