@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { render } from "@react-email/render";
 import VerificationEmail from "../../emails/VerificationEmails";
-import { ApiResponse } from "@/types/ApiResponse";
+
 import React from "react";
 
 const transporter = nodemailer.createTransport({

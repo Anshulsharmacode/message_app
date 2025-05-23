@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy, Loader2, RefreshCcw, MessageCircle } from "lucide-react"
-import user, { Message } from '@/model/user'
+import{ Message } from '@/model/user'
 import { Switch } from '@/components/ui/switch'
 import MessageCard  from '@/components/messageCard'
 
