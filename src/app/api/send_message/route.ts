@@ -10,26 +10,27 @@ export async function POST(request: Request){
     const {username, content } = await request.json();
 
     try {
-
-        const user =await UserModel.findOne({username})
+        // Use findOneAndUpdate instead of findOne + save to avoid version conflicts
+        const user = await UserModel.findOneAndUpdate(
+            { username: { $regex: new RegExp(`^${username}$`, 'i') } },
+            { $push: { messages: { content, createdAt: new Date() } } },
+            { new: true }
+        );
+        
         if(!user){
             return Response.json({
                 success: false,
                 message: "User not found",
             });
         }
+        
         //validate the user is accepting messages
-        //// here give sample value of isAcceptiveMessage
         if(!user.isAcceptiveMessage){
             return Response.json({
                 success: false,
                 message: "User is not accepting messages",
             });
         }
-
-        const newMessage = {content , createdAt: new Date()};
-        user.messages.push(newMessage as Message);
-        await user.save();
 
         return Response.json({
             success: true,
@@ -44,6 +45,4 @@ export async function POST(request: Request){
             message: "Error sending message",
         });
     }
-
-
 }

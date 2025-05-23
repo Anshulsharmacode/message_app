@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy, Loader2, RefreshCcw, MessageCircle } from "lucide-react"
-import { Message } from '@/model/user'
+import user, { Message } from '@/model/user'
 import { Switch } from '@/components/ui/switch'
 import MessageCard  from '@/components/messageCard'
 
@@ -24,8 +24,8 @@ const Page = () => {
 
     const { data: session } = useSession()
     
-    // Add this check to safely access username
-    const username = session?.user?.name || ''
+    
+    const username = session?.user?.username
 
     const form = useForm({
         resolver: zodResolver(acceptMessageSchema),

@@ -19,21 +19,20 @@ export async function GET() {
     }
 
     try {
-        const userId = user._id || user.id;
-        if (!userId) {
-            console.error("User ID is missing from session:", user);
+        // Use email instead of ID for finding the user
+        const userEmail = user.email;
+        if (!userEmail) {
+            console.error("User email is missing from session:", user);
             return Response.json({
                 success: false,
-                message: "User ID not found in session",
+                message: "User email not found in session",
                 messages: [],
             });
         }
 
-        // Convert string ID to ObjectId
-        const userObjectId = new mongoose.Types.ObjectId(userId);
-        console.log("Fetching messages for user ID:", userObjectId);
+        console.log("Fetching messages for user email:", userEmail);
 
-        const foundUser = await UserModel.findById(userObjectId);
+        const foundUser = await UserModel.findOne({ email: userEmail });
         if (!foundUser) {
             return Response.json({
                 success: false,
