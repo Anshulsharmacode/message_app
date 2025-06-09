@@ -4,76 +4,99 @@ import bcrypt from "bcryptjs";
 import UserModel from "@/model/user";
 
 export async function POST(request: Request) {
-    await dbconnect();
+  await dbconnect();
+
+  try {
+    const { email, username, password } = await request.json();
+    // console.log("Email:", email);
+    // console.log("Username:", username);
+    // console.log("Password:", password);
+
+    // Check for existing verified user
+    const existingUserVerified = await UserModel.findOne({
+      email,
+      isVerified: true,
+    });
+
+    if (existingUserVerified) {
+      return Response.json({
+        success: false,
+        message: "User already exists",
+        isAcceptingMessages: false,
+      });
+    }
+
+    // Check for existing user by email
+    const existingUserByEmail = await UserModel.findOne({ email });
+
+    const verifycode = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     try {
-        const { email, username, password } = await request.json();
-        // console.log("Email:", email);
-        // console.log("Username:", username);
+      if (existingUserByEmail) {
+        existingUserByEmail.password = hashedPassword;
+        existingUserByEmail.verifycode = verifycode;
+        existingUserByEmail.verifyexpire = new Date(
+          Date.now() + 60 * 60 * 1000
+        );
+        await existingUserByEmail.save();
+      } else {
+        const expirydate = new Date();
+        expirydate.setHours(expirydate.getHours() + 1);
 
-        const existingUserVerified = await UserModel.findOne({
-            email,
-            isVerified: true,
+        const newUser = new UserModel({
+          username,
+          email,
+          password: hashedPassword,
+          verifycode,
+          verifyexpire: expirydate,
+          isVerified: false,
+          isAcceptiveMessage: true,
+          messages: [],
         });
 
-        if (existingUserVerified) {
-            return Response.json({
-                success: false,
-                message: "User already exists",
-                isAcceptingMessages: false,
-            });
-        }
+        await newUser.save();
+      }
 
-        const existingUserByEmail = await UserModel.findOne({ email });
-        
-        const verifycode = Math.floor(100000 + Math.random() * 900000).toString();
-        const hashedPassword = await bcrypt.hash(password, 10);
+      const emailResponse = await sendVerificationEmail(
+        email,
+        username,
+        verifycode
+      );
 
-        if (existingUserByEmail) {
-            existingUserByEmail.password = hashedPassword;
-            existingUserByEmail.verifycode = verifycode;
-            existingUserByEmail.verifyexpire = new Date(Date.now() + 60 * 60 * 1000);
-            await existingUserByEmail.save();
-        } else {
-            const expirydate = new Date();
-            expirydate.setHours(expirydate.getHours() + 1);
-
-            const newUser = new UserModel({
-                
-                username,
-                email,
-                password: hashedPassword,
-                verifycode,
-                verifyexpire: expirydate,
-                isVerified: false,
-                isAcceptingMessages: true,
-                messages: [],
-            });
-
-            await newUser.save();
-        }
-
-        const emailResponse = await sendVerificationEmail(email, username, verifycode);
-        if (!emailResponse.success) {
-            return Response.json({
-                success: false,
-                message: emailResponse.message,
-                isAcceptingMessages: false,
-            });
-        }
-
+      if (!emailResponse.success) {
         return Response.json({
-            success: true,
-            message: "Verification email sent successfully",
-            isAcceptingMessages: true,
+          success: false,
+          message: emailResponse.message,
+          isAcceptingMessages: false,
         });
+      }
 
-    } catch (error) {
-        console.log("Error in signup route:", error);
-        return Response.json({
-            success: false,
-            message: "Internal server error",
-            isAcceptingMessages: false,
-        });
+      return Response.json({
+        success: true,
+        message: "Verification email sent successfully",
+        isAcceptingMessages: true,
+      });
+    } catch (validationError) {
+      console.error("Validation error:", validationError);
+      return Response.json(
+        {
+          success: false,
+          message: "Invalid user data",
+          isAcceptingMessages: false,
+        },
+        { status: 400 }
+      );
     }
+  } catch (error) {
+    console.error("Error in signup route:", error);
+    return Response.json(
+      {
+        success: false,
+        message: "Internal server error",
+        isAcceptingMessages: false,
+      },
+      { status: 500 }
+    );
+  }
 }
