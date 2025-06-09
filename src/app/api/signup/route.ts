@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
       return Response.json({
         success: true,
-        message: "Verification email sent successfully",
+        message: "Verification email sent successfully check your inbox",
         isAcceptingMessages: true,
       });
     } catch (validationError) {
