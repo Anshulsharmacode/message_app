@@ -19,7 +19,7 @@ export async function GET() {
     }
 
     try {
-        // Use email instead of ID for finding the user
+        
         const userEmail = user.email;
         if (!userEmail) {
             console.error("User email is missing from session:", user);
@@ -41,7 +41,6 @@ export async function GET() {
             });
         }
 
-        // Sort messages by date directly
         const sortedMessages = foundUser.messages.sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );

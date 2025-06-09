@@ -106,7 +106,7 @@ export const authOption:NextAuthOptions={
             
             if (user) {
                 const newToken = {
-                    ...token,
+                    ...token, 
                     _id: user.id,
                     username: user.username,
                     isVerified: user.isVerified,
@@ -133,8 +133,8 @@ export const authOption:NextAuthOptions={
                     isVerified: token.isVerified,
                     isAcceptiveMessage: token.isAcceptiveMessage,
                     email: token.email,
-                    _id: token._id || token.sub, // Added fallback to token.sub
-                    id: token._id || token.sub // Added fallback to token.sub
+                    _id: token._id || token.sub, 
+                    id: token._id || token.sub 
                 }
             };
             // console.log("Session Callback - New session created:", newSession);

@@ -12,7 +12,7 @@ export async function POST(request: Request){
     try {
         // First find the user without updating
         const user = await UserModel.findOne(
-            { username: { $regex: new RegExp(`^${username}$`, 'i') } }
+            {username }
         );
         
         if(!user){
@@ -22,7 +22,7 @@ export async function POST(request: Request){
             });
         }
         
-        // Check if the user is accepting messages before adding the message
+   
         if(!user.isAcceptiveMessage){
             return Response.json({
                 success: false,

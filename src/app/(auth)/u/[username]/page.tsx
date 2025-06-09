@@ -20,7 +20,7 @@ const Page = () => {
         try {
             const response = await axios.post('/api/ai');
             if (response.data.result) {
-                // Split the suggestions by '||' and trim whitespace
+               
                 const suggestionArray = response.data.result.split('||').map((s: string) => s.trim());
                 setSuggestions(suggestionArray);
             }
