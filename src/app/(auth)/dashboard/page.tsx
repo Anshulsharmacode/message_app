@@ -133,7 +133,6 @@ const Page = () => {
     }
   };
 
-  // Update the baseUrl declaration
   // const baseUrl = `http://localhost:3000/u/${username}`||`https://message-app-pied.vercel.app/u/${username}`
   const baseUrl = `https://message-app-pied.vercel.app/u/${username}`; // Use the production URL for deployment
   const handleCopyLink = () => {

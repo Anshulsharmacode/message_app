@@ -1,7 +1,7 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
-import Link from 'next/link';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { MessageSquare } from "lucide-react";
+import Link from "next/link";
 
 const Home = () => {
   return (
@@ -11,9 +11,10 @@ const Home = () => {
           <MessageSquare className="h-12 w-12 text-primary" />
           <h1 className="text-4xl font-bold">Mysterious Message</h1>
         </div>
-        
+
         <p className="text-xl text-muted-foreground max-w-2xl">
-          Send and receive anonymous messages. Connect with others in a unique way through honest feedback and meaningful conversations.
+          Send and receive anonymous messages. Connect with others in a unique
+          way through honest feedback and meaningful conversations.
         </p>
 
         <div className="grid gap-4 mt-8">
@@ -22,7 +23,7 @@ const Home = () => {
               Get Started
             </Button>
           </Link>
-          <Link href="/dashboard">
+          <Link href="/login">
             <Button variant="outline" size="lg" className="px-8">
               Check Your Messages
             </Button>
@@ -32,15 +33,21 @@ const Home = () => {
         <div className="grid md:grid-cols-3 gap-8 mt-16">
           <div className="p-6 bg-card rounded-lg">
             <h3 className="text-xl font-semibold mb-2">Anonymous Messaging</h3>
-            <p className="text-muted-foreground">Send private messages without revealing your identity</p>
+            <p className="text-muted-foreground">
+              Send private messages without revealing your identity
+            </p>
           </div>
           <div className="p-6 bg-card rounded-lg">
             <h3 className="text-xl font-semibold mb-2">Smart Suggestions</h3>
-            <p className="text-muted-foreground">Get AI-powered message suggestions for meaningful conversations</p>
+            <p className="text-muted-foreground">
+              Get AI-powered message suggestions for meaningful conversations
+            </p>
           </div>
           <div className="p-6 bg-card rounded-lg">
             <h3 className="text-xl font-semibold mb-2">Easy Sharing</h3>
-            <p className="text-muted-foreground">Share your profile link and start receiving messages</p>
+            <p className="text-muted-foreground">
+              Share your profile link and start receiving messages
+            </p>
           </div>
         </div>
       </div>
